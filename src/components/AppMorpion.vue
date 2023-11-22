@@ -3,7 +3,7 @@
     <!-- Conteneur pour le gagnant et le bouton recommencer -->
     <div class="game-info">
       <!-- Affiche gagnant si présent -->
-      <p v-if="winner">Gagnant: {{ winner }}</p>
+      <p v-if="winner">{{ winnerMessage }}</p>
       <!-- Affiche Match nul si grille pleine sans gagnant -->
       <p v-else-if="isFull">Match nul!</p>
       <!-- Btn Recommencer, affiché si partie finie -->
@@ -29,39 +29,41 @@
 
 <script>
 export default {
-  name: "TicTacToe", // Nom composant
+  name: "TicTacToe",
   data() {
-    // Données composant
     return {
-      cells: Array(9).fill(null), // 9 cellules initialisées à null
-      currentPlayer: "X", // Joueur actuel (X ou O)
-      winner: null, // Gagnant (null si aucun)
+      cells: Array(9).fill(null),
+      currentPlayer: "X",
+      winner: null,
+      startingPlayer: "X",
+      winnerMessage: "",
     };
   },
   computed: {
     isFull() {
-      // Vérifie si grille complète
       return this.cells.every((cell) => cell !== null);
     },
   },
   methods: {
     makeMove(index) {
-      // Joue un coup
       if (!this.cells[index] && !this.winner) {
-        this.$set(this.cells, index, this.currentPlayer); // Met à jour cellule
-        if (this.checkForWin()) {
-          // Vérifie victoire
-          this.winner = this.currentPlayer; // Déclare gagnant
-        } else if (this.isFull) {
-          // Match nul si grille pleine
+        this.$set(this.cells, index, this.currentPlayer);
+
+        this.checkForWin(); // Vérifie si le mouvement actuel mène à une victoire
+
+        if (!this.winner) {
+          // Change de joueur seulement si aucun gagnant n'a été déterminé
+          this.currentPlayer = this.currentPlayer === "X" ? "O" : "X";
+        }
+
+        if (!this.winner && this.isFull) {
+          // Si aucun gagnant et grille pleine, déclare match nul
           this.winner = "Nobody";
-        } else {
-          this.currentPlayer = this.currentPlayer === "X" ? "O" : "X"; // Change joueur
+          this.winnerMessage = "Encore magel";
         }
       }
     },
     checkForWin() {
-      // Vérifie si victoire
       const lines = [
         [0, 1, 2],
         [3, 4, 5],
@@ -73,20 +75,27 @@ export default {
         [2, 4, 6], // Diagonales
       ];
 
-      return lines.some(([a, b, c]) => {
-        return (
+      for (let line of lines) {
+        const [a, b, c] = line;
+        if (
           this.cells[a] &&
           this.cells[a] === this.cells[b] &&
           this.cells[a] === this.cells[c]
-        );
-      });
+        ) {
+          this.winner = this.currentPlayer;
+          this.winnerMessage =
+            this.winner === this.startingPlayer ? "Bravo le veau" : "Cheh !";
+          break;
+        }
+      }
     },
     resetGame() {
-      // Réinitialise jeu
-      this.cells = Array(9).fill(null); // Vide grille
-      this.currentPlayer = "X"; // Reinitialise joueur
-      this.winner = null; // Réinitialise gagnant
-      this.$emit("gameReset"); // Émet un événement personnalisé
+      this.cells = Array(9).fill(null);
+      this.currentPlayer = "X";
+      this.winner = null;
+      this.startingPlayer = "X";
+      this.winnerMessage = "";
+      this.$emit("gameReset");
     },
   },
 };
@@ -99,6 +108,7 @@ export default {
   align-items: center; /* Centrage éléments */
   background-color: transparent; /* Fond transparent */
   color: royalblue; /* Couleur texte */
+  text-shadow: 2px 2px 2px red; /* Ombre de texte rouge */
 }
 .game-info {
   display: flex;
@@ -109,6 +119,7 @@ export default {
 }
 
 .board {
+  box-shadow: 5px 10px 10px green; /* Ombre portée verte */
   display: grid; /* Grille pour cellules */
   grid-template-columns: repeat(3, 1fr); /* 3 colonnes égales */
   gap: 5px; /* Espacement cellules */
@@ -120,6 +131,7 @@ export default {
 }
 
 .cell {
+  box-shadow: 5px 10px 10px green; /* Ombre portée verte */
   width: 100px; /* Largeur cellule */
   height: 100px; /* Hauteur cellule */
   display: flex; /* Affichage flexible */
@@ -128,5 +140,6 @@ export default {
   border: 2px solid plum; /* Bordure cellule */
   font-size: 4em; /* Taille symbole */
   cursor: pointer; /* Curseur pointeur */
+  text-shadow: 2px 2px 2px red; /* Ombre de texte rouge */
 }
 </style>
